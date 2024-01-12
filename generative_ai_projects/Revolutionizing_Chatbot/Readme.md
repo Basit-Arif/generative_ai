@@ -46,7 +46,7 @@ This will start the web application on your local machine, which you can access 
 
 ## ShowCase of Project 
 
-![project Screenshot](https://github.com/Basit-Arif/generative_ai/blob/main/generative_ai_projects/Revolutionizing_Chatbot/Screenshot%202024-01-11%20at%207.38.13%20PM.png)
+![project Screenshot](https://github.com/Basit-Arif/generative_ai/blob/main/generative_ai_projects/Revolutionizing_Chatbot/project%20showcase.png)
 
 - **Explanation of project**
     - **Your Unique Code:** Users create a unique input code upon registration, ensuring secure and personalized interactions. This code serves as an identifier for seamless logins and chat history access.
