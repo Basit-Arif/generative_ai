@@ -6,6 +6,16 @@ import time
 from typing import Optional
 # Authentication logic
 def format_messages(messages:Optional[list]):
+    """
+    Formats a list of messages, each represented as a dictionary with a single key-value pair.
+    
+    Parameters:
+    - messages (Optional[list]): A list of dictionaries, each containing a role as the key and content as the value.
+
+    Returns:
+    - Union[list, str]: A list of tuples, where each tuple consists of (role, content). 
+      If no messages are provided or an error occurs during formatting, returns "No History Found".
+    """
     try:
         formatted_messages = []
         for message in messages:
@@ -93,7 +103,7 @@ if st.session_state.is_logged_in==True:
 
     st.sidebar.text("Your unique identity "+ st.session_state.phone)
     counter,value=get_limit_message(st.session_state.phone)
-    print(counter,value)
+    
     st.sidebar.text(f"Your Remaining Prompt are : {20-value}")
     for m in st.session_state.bot.get_message():
         with st.chat_message(m.role):
@@ -118,9 +128,9 @@ if st.session_state.is_logged_in==True:
                st.write("No History Found")
 
     if st.session_state.is_logged_in:
-        print(st.session_state.phone)
+        
         counter,value=get_limit_message(st.session_state.phone)
-        print(counter)
+        
         if counter and value < 20: 
         # if get_limit_message(phonenumber=phonenumber):
             if prompt := st.chat_input("Please Ask a Question") :
