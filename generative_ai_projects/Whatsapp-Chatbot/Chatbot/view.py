@@ -1,7 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,status,Request
 import logging
 import requests
 import json
+from model import send_whatsapp_message,send_custom_message
+from fastapi.responses import JSONResponse
+
 
 
 from fastapi import FastAPI, HTTPException, Query
@@ -9,6 +12,14 @@ from fastapi import FastAPI, HTTPException, Query
 app = FastAPI()
 
 VERIFY_TOKEN = '12345'  # Replace with your actual verify token
+
+
+def genearate_responce(sendernumber,text):
+    """Generates a response to an API request.
+    """
+    return send_custom_message(sender_number=sendernumber,template_name=text.upper())
+
+    
 
 
 def verify(mode: str , token: str, challenge: str ):
@@ -40,10 +51,44 @@ def data(hub_mode: str = Query(..., alias="hub.mode"),
 # def hello():
 #     verify()
 #     return {"return":True}
+
 @app.post("/webhook")
-def handle_webhook(payload: dict):
-    print(payload)
-    return {"received_payload": payload}
+async def handle_webhook(request:Request,payload: dict):
+    body=await request.body()
+    body_json = json.loads(body)
+    if body_json:
+        try:
+            confirmation_text = body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["text"]
+            if confirmation_text=="Confirm Order":
+                print(f"{confirmation_text} your order is confirmed")
+        except:
+            print("hi")
+    if payload:
+        try:
+            # print(payload)
+            text=payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
+            sender_number=payload['entry'][0]['changes'][0]['value']['messages'][0]['from']
+            # print(text)
+            # print(sender_number)
+            # genearate_responce(sendernumber=sender_number,text=text)
+            return status.HTTP_200_OK
+        except Exception as es:
+            pass
+            
+            # return JSONResponse(content={"status": "error", "message": "Not a WhatsApp API event"},status_code=404)
+    else:
+        raise ValueError('No Payload')
+@app.get("/example")
+async def example_route():
+    return JSONResponse(content={"status": "ok"}, status_code=500)
+
+
+
+# @app.post("/webhook")
+# def handle_webhook(payload: dict):
+#     return {"received_payload": payload}
+
+
 
 
 if __name__=="__main__":
