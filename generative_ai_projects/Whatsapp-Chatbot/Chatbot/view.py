@@ -2,7 +2,7 @@ from fastapi import FastAPI,status,Request
 import logging
 import requests
 import json
-from model import send_whatsapp_message,send_custom_message
+from model import send_whatsapp_message,send_custom_message,send_logistic_preference
 from fastapi.responses import JSONResponse
 
 
@@ -57,20 +57,27 @@ async def handle_webhook(request:Request,payload: dict):
     body=await request.body()
     body_json = json.loads(body)
     if body_json:
+        print("------------------------")
+        print(f"this is body json{body_json}")
         try:
             confirmation_text = body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["text"]
+            wa_id = body_json['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id']
+            print(confirmation_text)
             if confirmation_text=="Confirm Order":
-                print(f"{confirmation_text} your order is confirmed")
+                send_logistic_preference(w_id=wa_id)
+                # send_custom_message(sender_number=wa_id,template_name="May i know the preferred logistics you want")
         except:
             print("hi")
     if payload:
         try:
+            print("**********************************************")
+            print(f"this is paylod {payload}")
             # print(payload)
             text=payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
             sender_number=payload['entry'][0]['changes'][0]['value']['messages'][0]['from']
-            # print(text)
-            # print(sender_number)
-            # genearate_responce(sendernumber=sender_number,text=text)
+            print(text)
+            print(sender_number)
+            genearate_responce(sendernumber=f"+{sender_number}",text=text)
             return status.HTTP_200_OK
         except Exception as es:
             pass

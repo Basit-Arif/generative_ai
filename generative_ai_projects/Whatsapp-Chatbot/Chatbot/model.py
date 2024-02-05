@@ -1,7 +1,10 @@
 import requests
 import json
+from dotenv import load_dotenv
+import os 
 
 async def send_whatsapp_message(sender_number:str,name:str,order:str):
+    load_dotenv()
     url = "https://graph.facebook.com/v18.0/190019904202736/messages"
 
     payload = json.dumps({
@@ -31,7 +34,7 @@ async def send_whatsapp_message(sender_number:str,name:str,order:str):
 })
     headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer EAAVickuwzN8BOyNMU0UDxyhSid7rxZAkWOZBCF4hn3ACC6IAo6uvSmZAd1TWwmqWRELw4ugrbVkvpZBBoMsdQR820RvPGgEiAyGoMtFOTFouGhpYvLYDwebT0ZAHcUDQHOZC1HMcM7DWZA1ZAFQwUTrTumZAOwKdqJAV3zkRIpgo2scayStT5q5tKhyguL4uocZAUNIQIi2zaimjqeos7QNtAZD'
+    'Authorization': f'Bearer {os.getenv("Whatsapi")}'
     }
     responce=requests.request("POST", url, headers=headers, data=payload)
 
@@ -40,6 +43,7 @@ async def send_whatsapp_message(sender_number:str,name:str,order:str):
 
 
 def send_confirmation_template(sender_number:str,name:str,order:str,currency:str):
+    load_dotenv()
     url = "https://graph.facebook.com/v18.0/190019904202736/messages"
 
     payload = json.dumps({
@@ -89,7 +93,7 @@ def send_confirmation_template(sender_number:str,name:str,order:str,currency:str
 })
     headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer EAAVickuwzN8BOyNMU0UDxyhSid7rxZAkWOZBCF4hn3ACC6IAo6uvSmZAd1TWwmqWRELw4ugrbVkvpZBBoMsdQR820RvPGgEiAyGoMtFOTFouGhpYvLYDwebT0ZAHcUDQHOZC1HMcM7DWZA1ZAFQwUTrTumZAOwKdqJAV3zkRIpgo2scayStT5q5tKhyguL4uocZAUNIQIi2zaimjqeos7QNtAZD'
+    'Authorization': f'Bearer {os.getenv("Whatsapi")}'
     }
     responce=requests.request("POST", url, headers=headers, data=payload)
 
@@ -97,7 +101,59 @@ def send_confirmation_template(sender_number:str,name:str,order:str,currency:str
 
 
 
+def send_logistic_preference(w_id):
+    load_dotenv()
+    url = "https://graph.facebook.com/v18.0/190019904202736/messages"
+    payload = json.dumps({
+    "messaging_product": "whatsapp",
+    "recipient_type": "individual",
+    "to": f"{w_id}",
+    "type": "template",
+    "template": {
+        "name": "logistic_preference",
+        "language": {"code": "en_US"},
+        "components": [
+            {
+                "type": "button",
+                "sub_type": "quick_reply",
+                "index": "0",
+                "parameters": [
+                    {"type": "payload", "payload": "TCS"}
+                ]
+            },
+            {
+                "type": "button",
+                "sub_type": "quick_reply",
+                "index": "1",
+                "parameters": [
+                    {"type": "payload", "payload": "Leopard"}
+                ]
+            },
+            {
+                "type": "button",
+                "sub_type": "quick_reply",
+                "index": "2",
+                "parameters": [
+                    {"type": "payload", "payload": "Trax"}
+                ]
+            }
+        ]
+    }
+})
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {os.getenv("Whatsapi")}'
+        }
+    responce=requests.request("POST", url, headers=headers, data=payload)
+
+    return responce.text
+
+
+
+
+
 def send_custom_message(sender_number:str,template_name:str):
+    load_dotenv()
     url = "https://graph.facebook.com/v18.0/190019904202736/messages"
 
     payload = json.dumps({
@@ -114,7 +170,7 @@ def send_custom_message(sender_number:str,template_name:str):
     })
     headers = {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer EAAVickuwzN8BOyNMU0UDxyhSid7rxZAkWOZBCF4hn3ACC6IAo6uvSmZAd1TWwmqWRELw4ugrbVkvpZBBoMsdQR820RvPGgEiAyGoMtFOTFouGhpYvLYDwebT0ZAHcUDQHOZC1HMcM7DWZA1ZAFQwUTrTumZAOwKdqJAV3zkRIpgo2scayStT5q5tKhyguL4uocZAUNIQIi2zaimjqeos7QNtAZD'
+    'Authorization': f'Bearer {os.getenv("Whatsapi")}'
     }
     responce=requests.request("POST", url, headers=headers, data=payload)
 
@@ -133,9 +189,10 @@ def send_personalise_whatsapp_message(recipient,text):
         }
     )
 def send_message(data):
+    
     headers = {
         "Content-type": "application/json",
-        "Authorization": "Bearer EAAVickuwzN8BO5wqPNVsZA4py8MrZBaDcJHW1u1f3QZBWFEtjDRsMNfM340ZCTZCTmoCDSIf6r4uzqrwIBDwnQPdwiXVgsHLlp2Bpvr6Mpxq7ehk8ZBkboz0xjPgAV2Yd2CXOxZCyLs7dZBIcGdvHQy320XznAuzh8LmlzK33D4N8KZBSVEdGZAcmkjGGwE6CvAB7byPlTawRQZAmIqqzr8wJsZD'",
+        "Authorization": f'Bearer {os.getenv("Whatsapi")}'
     }
 
     url = f"https://graph.facebook.com/v18.0/190019904202736/messages"
@@ -154,5 +211,6 @@ def send_message(data):
 # data=send_whatsapp_message(sender_number='923242586315',name="basit",order="321")
 # print(data)
 # obj1=send_message(data=data)
-# data=send_confirmation_template(sender_number='923242586315',name="basit",order="321",currency="100")
-# print(data)
+# data=send_logistic_preference("+923242586315")
+data=send_custom_message('+923242586315',"basit")
+data
