@@ -1,6 +1,7 @@
 import requests
+from typing import Optional,Union
 
-def update_tag(order_id:str,tag_value:str):
+def update_tag(order_id:str,tag_value:Optional[Union[str, list]]):
     access_token = "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"
 
 # Define the endpoint URL
@@ -24,7 +25,8 @@ def update_tag(order_id:str,tag_value:str):
     response = requests.put(url, json=data,headers=headers)
 
 # Print the response status code and content
-    print("Status Code:", response.status_code)
-    print("Response Content:", response.text)
+    if response.status_code == 200:
+        return {"status": "success", "message": "Tag updated successfully"}
+    else:
+        return {"status": "error", "message": response.content.decode("utf-8")}
 
-update_tag("5648940728407","order confirmed")

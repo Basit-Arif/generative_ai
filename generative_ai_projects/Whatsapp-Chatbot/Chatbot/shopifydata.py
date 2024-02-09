@@ -2,7 +2,9 @@ from fastapi import FastAPI, HTTPException, Request,status
 import hmac
 import hashlib
 import base64
-from model import send_whatsapp_message,send_confirmation_template
+# import importlib
+# importlib.invalidate_caches()
+from model import send_confirmation_template
 
 app = FastAPI()
 
@@ -27,13 +29,20 @@ async def handle_webhook(request: Request,payload:dict):
     if not verify_webhook(data, hmac_header):
         raise HTTPException(status_code=401, detail="Invalid webhook")
     else:
+        print(data)
         order_id = payload.get('id')
         name_of_person = payload.get('billing_address', {}).get('name')
         total_price = payload.get('total_price_set', {}).get('shop_money', {}).get('amount')
         phone_number = payload.get('billing_address', {}).get('phone')
+        city=payload.get('shipping_address',{}).get('city').lower()
+        order_id_and_address = {
+            "order_id": payload.get('id'),
+            "city": payload.get('shipping_address', {}).get('city', '').lower()
+        }
         print(payload)
         print(phone_number)
-        data_send= send_confirmation_template(phone_number,name_of_person,order_id,total_price)
+        print(order_id_and_address)
+        data_send= send_confirmation_template(phone_number,name_of_person,order_id,total_price,order_id_and_address)
         return {"Message Sent": f"{data_send}"}
 
 

@@ -4,6 +4,7 @@ import requests
 import json
 from model import send_whatsapp_message,send_custom_message,send_logistic_preference
 from fastapi.responses import JSONResponse
+from utils.shopifyservice import update_tag
 
 
 
@@ -54,17 +55,61 @@ def data(hub_mode: str = Query(..., alias="hub.mode"),
 
 @app.post("/webhook")
 async def handle_webhook(request:Request,payload: dict):
+    print("click")
     body=await request.body()
     body_json = json.loads(body)
     if body_json:
-        print("------------------------")
+        print("----------------------------------")
         print(f"this is body json{body_json}")
         try:
             confirmation_text = body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["text"]
             wa_id = body_json['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id']
+
+            try:
+                order_id=body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["payload"]
+                query_json = order_id.replace("'", "\"")
+                query_load = json.loads(query_json)
+                print(query_load["order_id"])
+                print(query_load["city"])
+                try:
+                    data2=update_tag(order_id=query_load["order_id"],tag_value=confirmation_text)
+                    if query_load["city"]=="karachi":
+                        updated=update_tag(order_id=query_load["order_id"],tag_value=[confirmation_text,query_load["city"]])
+                        print("updated sucessfilu")
+                    else:
+                        pass
+                except Exception as es:
+                     print(f"error is {es}")
+                # json_dict=json.dumps(order_id)
+                # json_dict = json.loads(json_dict.replace("\"",'"'))
+                # print(dict(order_id)[0]["city"])
+
+                # Access individual values
+                # order_id = json_dict.gets
+                # city_name = json_dict.get('city', None)
+
+                # print("Order ID:", order_id)
+                # print("City Name:", city_name)
+
+            except Exception as e:
+                print("Error decoding JSON:", e)
+                
+
             print(confirmation_text)
+            try:
+                city=body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["payload"]["city"]
+                if city=="karachi":
+                    print("this in karachi")
+                else:
+                    raise ValueError("City is not Karachi")
+            except Exception as es:
+                print("this is "+str(es))
+                    
+            
             if confirmation_text=="Confirm Order":
-                send_logistic_preference(w_id=wa_id)
+                print("in confir order")
+                
+                
                 # send_custom_message(sender_number=wa_id,template_name="May i know the preferred logistics you want")
         except:
             print("hi")
@@ -100,4 +145,5 @@ async def example_route():
 
 if __name__=="__main__":
     import uvicorn
+    
     uvicorn.run("view:app",reload=True,port=8000)
