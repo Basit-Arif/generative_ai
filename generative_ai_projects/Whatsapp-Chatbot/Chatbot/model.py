@@ -47,6 +47,19 @@ def send_whatsapp_message(sender_number:str,name:str,order:str):
 
 
 def send_confirmation_template(sender_number:str,name:str,order:str,currency:str,order_id_and_address:dict):
+    """
+    Sends a confirmation template message to a specified WhatsApp number.
+
+    Parameters:
+    - sender_number: WhatsApp number of the recipient
+    - name: Name of the recipient
+    - order: Details of the order
+    - currency: Currency information
+    - order_id_and_address: Dictionary containing order ID and address details
+
+    Returns:
+    - Dictionary indicating success ({"Success": 200}) or failure ({"Failure": 500})
+    """
     load_dotenv()
     url = "https://graph.facebook.com/v18.0/190019904202736/messages"
 
@@ -112,12 +125,35 @@ def send_confirmation_template(sender_number:str,name:str,order:str,currency:str
 
 
 def send_logistic_preference(w_id,order_id):
+    """
+    Sends logistic preferences to a WhatsApp user.
+
+    Parameters:
+    - w_id (str): WhatsApp user ID to whom the preferences will be sent.
+    - order_id (str): Order ID for which logistic preferences are being sent.
+
+    Returns:
+    - str: Response text from the API call.
+
+    Example:
+    ```python
+    response = send_logistic_preference("whatsapp_user_id", "order123")
+    print(response)
+    ```
+    """
+
+    # Load environment variables
     load_dotenv()
-    payload={
-        "payload_type":"logistics",
-        "order_id":f"{order_id}"
+
+    # Prepare payload for logistic preferences
+    payload = {
+        "payload_type": "logistics",
+        "order_id": f"{order_id}"
     }
+
+    # WhatsApp API endpoint URL
     url = "https://graph.facebook.com/v18.0/190019904202736/messages"
+    # Construct payload in JSON format for WhatsApp API
     payload = json.dumps({
     "messaging_product": "whatsapp",
     "recipient_type": "individual",
@@ -154,12 +190,15 @@ def send_logistic_preference(w_id,order_id):
         ]
     }
 })
+    # Set headers for the API call          
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {os.getenv("Whatsapi2")}'
         }
+
+    # Make a POST request to the WhatsApp API
     responce=requests.request("POST", url, headers=headers, data=payload)
-    print(payload)
+
     return responce.text
 
 
@@ -243,5 +282,5 @@ import asyncio
 # data =send_custom_message('03242586315', "basit")
 # data=send_confirmation_template("+923242586315","Basit","5867126882391","1200","{'payload_type':'Confirmation_text','order_id': 5867126882391, 'city': 'karachi'}")
 # data
-# data=send_logistic_preference("+923242586315","5867126882391")
-# data
+data=send_logistic_preference("+923242586315","5867126882391")
+data

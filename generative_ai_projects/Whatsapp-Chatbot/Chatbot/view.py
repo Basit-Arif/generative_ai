@@ -54,19 +54,29 @@ def data(hub_mode: str = Query(..., alias="hub.mode"),
 
 @app.post("/webhook")
 async def handle_webhook(request:Request,payload: dict):
-    # print("click")
+    """
+    Handles the incoming webhook requests from WhatsApp API.
+
+    Parameters:
+    - request: FastAPI Request object
+    - payload: JSON payload received from WhatsApp API
+
+    Returns:
+    - FastAPI HTTP Status Code indicating success (200 OK) or error (404 Not Found)
+    """
     body=await request.body()
     body_json = json.loads(body)
     if body_json:
-        # print("----------------------------------")
-        # print(f"this is body json{body_json}")
+
         try:
+            # Handling button clicks
             payload_buttton_text = body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["text"]
             wa_id = body_json['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id']
             payload=body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["payload"]
             query_json = payload.replace("'", "\"")
             query_load = json.loads(query_json)
-            # print(query_json)
+            
+            # Handling different payload types
             try:
                 if query_load["payload_type"]=="logistics":
                     await send_custom_message(wa_id,f"Good news! Your order is set, and {payload_buttton_text} is on the way. Thanks for choosing us. Get ready for your special delivery") 
@@ -96,12 +106,9 @@ async def handle_webhook(request:Request,payload: dict):
             pass
     if payload:
         try:
-            # print("**********************************************")
-            # print(f"this is paylod {payload}")
-            # print(payload)
+
             text=payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
             sender_number=payload['entry'][0]['changes'][0]['value']['messages'][0]['from']
-
             await genearate_responce(sendernumber=f"+{sender_number}",text=text)
             return status.HTTP_200_OK
         except Exception as es:
