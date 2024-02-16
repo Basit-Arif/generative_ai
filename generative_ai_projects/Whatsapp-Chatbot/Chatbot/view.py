@@ -5,20 +5,19 @@ import json
 from model import send_whatsapp_message,send_custom_message,send_logistic_preference
 from fastapi.responses import JSONResponse
 from utils.shopifyservice import update_tag
-
-
-
+import os 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 
 app = FastAPI()
+load_dotenv()
+VERIFY_TOKEN = str(os.getenv("VERIFY_TOKEN"))  # Replace with your actual verify token
 
-VERIFY_TOKEN = '12345'  # Replace with your actual verify token
 
-
-def genearate_responce(sendernumber,text):
+async def genearate_responce(sendernumber,text):
     """Generates a response to an API request.
     """
-    return send_custom_message(sender_number=sendernumber,template_name=text.upper())
+    return await send_custom_message(sender_number=sendernumber,template_name="🌟 Thank you for contacting Kidsay Store! 🌟 This number is for confirmation texts only. For inquiries, please call us at +92 324 2586315. 📞 We appreciate your understanding! 🙏")
 
     
 
@@ -55,74 +54,55 @@ def data(hub_mode: str = Query(..., alias="hub.mode"),
 
 @app.post("/webhook")
 async def handle_webhook(request:Request,payload: dict):
-    print("click")
+    # print("click")
     body=await request.body()
     body_json = json.loads(body)
     if body_json:
-        print("----------------------------------")
-        print(f"this is body json{body_json}")
+        # print("----------------------------------")
+        # print(f"this is body json{body_json}")
         try:
-            confirmation_text = body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["text"]
+            payload_buttton_text = body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["text"]
             wa_id = body_json['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id']
-
+            payload=body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["payload"]
+            query_json = payload.replace("'", "\"")
+            query_load = json.loads(query_json)
+            # print(query_json)
             try:
-                order_id=body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["payload"]
-                query_json = order_id.replace("'", "\"")
-                query_load = json.loads(query_json)
-                print(query_load["order_id"])
-                print(query_load["city"])
-                try:
-                    data2=update_tag(order_id=query_load["order_id"],tag_value=confirmation_text)
-                    if query_load["city"]=="karachi":
-                        updated=update_tag(order_id=query_load["order_id"],tag_value=[confirmation_text,query_load["city"]])
-                        print("updated sucessfilu")
+                if query_load["payload_type"]=="logistics":
+                    await send_custom_message(wa_id,f"Good news! Your order is set, and {payload_buttton_text} is on the way. Thanks for choosing us. Get ready for your special delivery") 
+                    update_tag(order_id=query_load["order_id"],tag_value=[payload_buttton_text,payload_buttton_text])
+            except:
+                pass
+            try:
+                
+                if query_load["payload_type"]=="Confirmation_text":
+                    if payload_buttton_text=="Confirm Order":
+                        try:
+                            update_tag(order_id=query_load["order_id"],tag_value=payload_buttton_text)
+                            if query_load["city"]=="karachi":
+                                send_logistic_preference(wa_id,query_load["order_id"])
+                                # updated=update_tag(order_id=query_load["order_id"],tag_value=[confirmation_text,query_load["city"]])
+                                return {"success":"200"}
+                            else:
+                                await send_custom_message(wa_id,"Got it! Your order is confirmed. We're on it. Thanks for choosing us!")
+                        except Exception as es:
+                            print(f"error is {es}")  
                     else:
-                        pass
-                except Exception as es:
-                     print(f"error is {es}")
-                # json_dict=json.dumps(order_id)
-                # json_dict = json.loads(json_dict.replace("\"",'"'))
-                # print(dict(order_id)[0]["city"])
-
-                # Access individual values
-                # order_id = json_dict.gets
-                # city_name = json_dict.get('city', None)
-
-                # print("Order ID:", order_id)
-                # print("City Name:", city_name)
-
+                        await send_custom_message(wa_id,"Your order got *canceled*. Can you tell us why? We're here to help. Thank you. 🛍️")
+                        update_tag(order_id=query_load["order_id"],tag_value=payload_buttton_text)
             except Exception as e:
-                print("Error decoding JSON:", e)
-                
-
-            print(confirmation_text)
-            try:
-                city=body_json["entry"][0]["changes"][0]["value"]["messages"][0]["button"]["payload"]["city"]
-                if city=="karachi":
-                    print("this in karachi")
-                else:
-                    raise ValueError("City is not Karachi")
-            except Exception as es:
-                print("this is "+str(es))
-                    
-            
-            if confirmation_text=="Confirm Order":
-                print("in confir order")
-                
-                
-                # send_custom_message(sender_number=wa_id,template_name="May i know the preferred logistics you want")
+                pass
         except:
-            print("hi")
+            pass
     if payload:
         try:
-            print("**********************************************")
-            print(f"this is paylod {payload}")
+            # print("**********************************************")
+            # print(f"this is paylod {payload}")
             # print(payload)
             text=payload['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
             sender_number=payload['entry'][0]['changes'][0]['value']['messages'][0]['from']
-            print(text)
-            print(sender_number)
-            genearate_responce(sendernumber=f"+{sender_number}",text=text)
+
+            await genearate_responce(sendernumber=f"+{sender_number}",text=text)
             return status.HTTP_200_OK
         except Exception as es:
             pass
@@ -130,9 +110,7 @@ async def handle_webhook(request:Request,payload: dict):
             # return JSONResponse(content={"status": "error", "message": "Not a WhatsApp API event"},status_code=404)
     else:
         raise ValueError('No Payload')
-@app.get("/example")
-async def example_route():
-    return JSONResponse(content={"status": "ok"}, status_code=500)
+
 
 
 

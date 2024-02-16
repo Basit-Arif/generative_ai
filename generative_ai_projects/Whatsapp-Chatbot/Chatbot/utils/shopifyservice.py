@@ -1,5 +1,9 @@
 import requests
 from typing import Optional,Union
+import os 
+from dotenv import load_dotenv
+
+
 
 def update_tag(order_id:str,tag_value:Optional[Union[str, list]]):
     access_token = "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"
